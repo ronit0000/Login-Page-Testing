@@ -60,7 +60,12 @@ class TestBoundaryValues:
         
         Expected: Error message shown OR login fails
         """
-        print("\n🧪 TEST 1: Empty Email")
+        print("\n" + "="*60)
+        print("🧪 TEST 1: Empty Email (Boundary Test)")
+        print("="*60)
+        print("  📝 Input: Email = '' (empty), Password = 'Password123'")
+        print("  ⚠️  Expected: Should show error OR block login")
+        print()
         
         # Find elements
         email_field = driver.find_element(By.ID, 'email')
@@ -74,19 +79,55 @@ class TestBoundaryValues:
         
         time.sleep(2)
         
-        # Check if error message appears
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        # Check for error message
         try:
             error = driver.find_element(By.ID, 'emailError')
-            print(f"  ✅ Error shown: {error.text}")
-            assert error.text != "", "Empty email should show error"
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
         except:
-            # Check if welcome message did NOT appear (login should fail)
-            try:
-                welcome = driver.find_element(By.ID, 'welcomeMessage')
-                if welcome.is_displayed():
-                    pytest.fail("🐛 BUG: Empty email was accepted!")
-            except:
-                print("  ✅ Login correctly blocked")
+            pass
+        
+        # Check if login succeeded
+        try:
+            welcome = driver.find_element(By.ID, 'welcomeMessage')
+            if welcome.is_displayed():
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
+        except:
+            pass
+        
+        # Report what happened
+        print("  📊 ACTUAL RESULT:")
+        if error_shown:
+            print(f"     ├─ Error Message: '{error_text}'")
+        else:
+            print(f"     ├─ Error Message: (none)")
+        
+        if login_succeeded:
+            print(f"     └─ Login Status: ✅ SUCCESS - '{welcome_text}'")
+        else:
+            print(f"     └─ Login Status: ❌ BLOCKED")
+        
+        print()
+        
+        # Determine if behavior is correct
+        if login_succeeded:
+            print("  🐛 BUG DETECTED: Empty email was accepted and login succeeded!")
+            print("  ❌ TEST RESULT: FAIL - Boundary not enforced")
+            pytest.fail("🐛 BUG: Empty email should be rejected but login succeeded!")
+        elif error_shown:
+            print(f"  ✅ CORRECT: Error message shown and login blocked")
+            print("  ✅ TEST RESULT: PASS - Boundary properly enforced")
+        else:
+            print(f"  ⚠️  WARNING: Login blocked but no error message shown")
+            print("  ✅ TEST RESULT: PASS - Boundary enforced (but UX could be better)")
     
     
     # ==========================================
@@ -99,38 +140,112 @@ class TestBoundaryValues:
         Testing: "test@" (missing domain)
         Expected: Error message OR login fails
         """
-        print("\n🧪 TEST 2: Invalid Email Format")
+        print("\n" + "="*60)
+        print("🧪 TEST 2: Invalid Email Format (Boundary Test)")
+        print("="*60)
+        print("  📝 Input: Email = 'test@' (missing domain), Password = 'Password123'")
+        print("  ⚠️  Expected: Should show error OR block login")
+        print()
         
         email_field = driver.find_element(By.ID, 'email')
         password_field = driver.find_element(By.ID, 'password')
         login_button = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
         
-        # Enter invalid email (missing domain after @)
-        email_field.send_keys("test@")  # Invalid!
+        # Enter invalid email
+        email_field.send_keys("test@")
         password_field.send_keys("Password123")
         login_button.click()
         
         time.sleep(2)
         
-        # Check if login is blocked
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        try:
+            error = driver.find_element(By.ID, 'emailError')
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
+        except:
+            pass
+        
         try:
             welcome = driver.find_element(By.ID, 'welcomeMessage')
             if welcome.is_displayed():
-                pytest.fail("🐛 BUG: Invalid email 'test@' was accepted!")
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
         except:
-            print("  ✅ Invalid email correctly rejected")
-    
-    
-    # ==========================================
-    # TEST #3: Empty Password (Boundary Test)
-    # ==========================================
-    def test_empty_password(self, driver):
-        """
-        BOUNDARY TEST: Password field should not accept empty value
+            pass
         
-        Expected: Error message shown OR login fails
-        """
-        print("\n🧪 TEST 3: Empty Password")
+        # Report results
+        print("  " + "="*60)
+        print("🧪 TEST 3: Empty Password (Boundary Test)")
+        print("="*60)
+        print("  📝 Input: Email = 'test@example.com', Password = '' (empty)")
+        print("  ⚠️  Expected: Should show error OR block login")
+        print()
+        
+        email_field = driver.find_element(By.ID, 'email')
+        password_field = driver.find_element(By.ID, 'password')
+        login_button = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        
+        # Enter email but leave password empty
+        email_field.send_keys("test@example.com")
+        password_field.send_keys("")
+        login_button.click()
+        
+        time.sleep(2)
+        
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        try:
+            error = driver.find_element(By.ID, 'passwordError')
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
+        except:
+            pass
+        
+        try:
+            welcome = driver.find_element(By.ID, 'welcomeMessage')
+            if welcome.is_displayed():
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
+        except:
+            pass
+        
+        # Report results
+        print("  📊 ACTUAL RESULT:")
+        if error_shown:
+            print(f"     ├─ Error Message: '{error_text}'")
+        else:
+            print(f"     ├─ Error Message: (none)")
+        
+        if login_succeeded:
+            print(f"     └─ Login Status: ✅ SUCCESS - '{welcome_text}'")
+        else:
+            print(f"     └─ Login Status: ❌ BLOCKED")
+        
+        print()
+        
+        if login_succeeded:
+            print("  🐛 BUG DETECTED: Empty password was accepted and login succeeded!")
+            print("  ❌ TEST RESULT: FAIL - Boundary not enforced")
+            pytest.fail("🐛 BUG: Empty password should be rejected!")
+        elif error_shown:
+            print(f"  ✅ CORRECT: Error message shown and login blocked")
+            print("  ✅ TEST RESULT: PASS - Boundary properly enforced")
+        else:
+            print(f"  ⚠️  WARNING: Login blocked but no error message shown")
+            print("  ✅ TEST RESULT: PASS - Boundary enforced (but UX could be better)
+        print("  📝 Testing: Submitting form with empty password field")
         
         email_field = driver.find_element(By.ID, 'email')
         password_field = driver.find_element(By.ID, 'password')
@@ -146,28 +261,13 @@ class TestBoundaryValues:
         # Check if error shown or login blocked
         try:
             error = driver.find_element(By.ID, 'passwordError')
-            print(f"  ✅ Error shown: {error.text}")
-            assert error.text != "", "Empty password should show error"
-        except:
-            try:
-                welcome = driver.find_element(By.ID, 'welcomeMessage')
-                if welcome.is_displayed():
-                    pytest.fail("🐛 BUG: Empty password was accepted!")
-            except:
-                print("  ✅ Login correctly blocked")
-    
-    
-    # ==========================================
-    # TEST #4: Short Password (Boundary Test)
-    # ==========================================
-    def test_password_too_short(self, driver):
-        """
-        BOUNDARY TEST: Password below minimum length should be rejected
-        
-        Testing: "Pass1" (only 5 characters)
-        Expected: Minimum 8 characters required
-        """
-        print("\n🧪 TEST 4: Password Too Short (5 chars)")
+            error_text = error.text
+            print" + "="*60)
+        print("🧪 TEST 4: Password Too Short (Boundary Test)")
+        print("="*60)
+        print("  📝 Input: Email = 'test@example.com', Password = 'Pass1' (5 chars)")
+        print("  ⚠️  Expected: Should reject (minimum 8 characters)")
+        print()
         
         email_field = driver.find_element(By.ID, 'email')
         password_field = driver.find_element(By.ID, 'password')
@@ -175,31 +275,181 @@ class TestBoundaryValues:
         
         # Enter short password
         email_field.send_keys("test@example.com")
-        password_field.send_keys("Pass1")  # Only 5 characters!
+        password_field.send_keys("Pass1")
         login_button.click()
         
         time.sleep(2)
         
-        # Check if rejected
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        try:
+            error = driver.find_element(By.ID, 'passwordError')
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
+        except:
+            pass
+        
         try:
             welcome = driver.find_element(By.ID, 'welcomeMessage')
             if welcome.is_displayed():
-                pytest.fail("🐛 BUG: Short password (5 chars) was accepted!")
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
         except:
-            print("  ✅ Short password correctly rejected")
-    
-    
-    # ==========================================
-    # TEST #5: Minimum Valid Password (Boundary Test)
-    # ==========================================
-    def test_minimum_valid_password(self, driver):
-        """
-        BOUNDARY TEST: Password at minimum length (8 chars) should work
+            pass
         
-        Testing: "Pass1234" (exactly 8 characters)
+        # Report results
+        print("  📊 ACTUAL RESULT:")
+        if error_" + "="*60)
+        print("🧪 TEST 5: Minimum Valid Password (Boundary Test)")
+        print("="*60)
+        print("  📝 Input: Email = 'test@example.com', Password = 'Pass1234' (8 chars)")
+        print("  ✅ Expected: Should ACCEPT (minimum valid length)")
+        print()
+        
+        email_field = driver.find_element(By.ID, 'email')
+        password_field = driver.find_element(By.ID, 'password')
+        login_button = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        
+        # Enter minimum valid password
+        email_field.send_keys("test@example.com")
+        password_field.send_keys("Pass1234")
+        login_button.click()
+        
+        time.sleep(2)
+        
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        try:
+            error = driver.find_element(By.ID, 'passwordError')
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
+        except:
+            pass
+        
+        try:
+            welcome = driver.find_element(By.ID, 'welcomeMessage')
+            if welcome.is_displayed():
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
+        except:
+            pass
+        
+        # Report results
+        print("  📊 ACTUAL RESULT:")
+        if error_shown:
+            print(f"     ├─ Error Message: '{error_text}'")
+        else:
+            print(f"     ├─ Error Message: (none)")
+        
+        if login_succeeded:
+            print(f"     └─ Login Status: ✅ SUCCESS - '{welcome_text}'")
+        else:
+            print(f"     └─ Login Status: ❌ BLOCKED")
+        
+        print()
+        
+        if login_succeeded and not error_shown:
+            print("  ✅ CORRECT: 8-character password accepted (minimum valid)")
+            print("  ✅ TEST RESULT: PASS - Boundary properly enforced")
+        elif not login_succeeded:
+            print("  🐛 BUG DETECTED: Valid 8-character password was rejected!")
+            print("  ❌ TEST RESULT: FAIL - Valid input rejected")
+            pytest.fail("🐛 BUG: 8-character password should be accepted!")
+        else:
+            print("  ⚠️  WARNING: Login succeeded but error shown?")
+            print("  ✅ TEST RESULT: PASS - But UX is confusing
+        # Enter short password
+        email_field.send_keys("test@example.com")
+        password_field.send_keys("Pass1")  # Only 5 characters!
+        login_button.click()
+        
+        time.slee" + "="*60)
+        print("🧪 TEST 6: Valid Email and Password (Control Test)")
+        print("="*60)
+        print("  📝 Input: Email = 'test@example.com', Password = 'Password123'")
+        print("  ✅ Expected: Should ACCEPT (all requirements met)")
+        print()
+        
+        email_field = driver.find_element(By.ID, 'email')
+        password_field = driver.find_element(By.ID, 'password')
+        login_button = driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        
+        # Enter valid credentials
+        email_field.send_keys("test@example.com")
+        password_field.send_keys("Password123")
+        login_button.click()
+        
+        time.sleep(2)
+        
+        # Check what actually happened
+        error_shown = False
+        error_text = ""
+        login_succeeded = False
+        welcome_text = ""
+        
+        try:
+            error = driver.find_element(By.ID, 'emailError')
+            error_text = error.text.strip()
+            if error_text:
+                error_shown = True
+        except:
+            pass
+        
+        if not error_shown:
+            try:
+                error = driver.find_element(By.ID, 'passwordError')
+                error_text = error.text.strip()
+                if error_text:
+                    error_shown = True
+            except:
+                pass
+        
+        try:
+            welcome = driver.find_element(By.ID, 'welcomeMessage')
+            if welcome.is_displayed():
+                welcome_text = welcome.text.strip()
+                login_succeeded = True
+        except:
+            pass
+        
+        # Report results
+        print("  📊 ACTUAL RESULT:")
+        if error_shown:
+            print(f"     ├─ Error Message: '{error_text}'")
+        else:
+            print(f"     ├─ Error Message: (none)")
+        
+        if login_succeeded:
+            print(f"     └─ Login Status: ✅ SUCCESS - '{welcome_text}'")
+        else:
+            print(f"     └─ Login Status: ❌ BLOCKED")
+        
+        print()
+        
+        if login_succeeded and not error_shown:
+            print("  ✅ CORRECT: Valid credentials accepted")
+            print("  ✅ TEST RESULT: PASS - System working properly")
+        elif not login_succeeded:
+            print("  🐛 BUG DETECTED: Valid credentials were rejected!")
+            print("  ❌ TEST RESULT: FAIL - Valid login blocked")
+            pytest.fail("🐛 BUG: Valid credentials should be accepted!")
+        else:
+            print("  ⚠️  WARNING: Login succeeded but error also shown?")
+            print("  ⚠️  TEST RESULT: PASS - But UX is confusing
         Expected: Should be accepted
         """
         print("\n🧪 TEST 5: Minimum Valid Password (8 chars)")
+        print("  📝 Testing: Submitting 'Pass1234' (exactly 8 characters)")
         
         email_field = driver.find_element(By.ID, 'email')
         password_field = driver.find_element(By.ID, 'password')
@@ -216,11 +466,16 @@ class TestBoundaryValues:
         try:
             welcome = driver.find_element(By.ID, 'welcomeMessage')
             if welcome.is_displayed():
-                print("  ✅ Minimum valid password accepted")
+                welcome_text = welcome.text
+                print(f"  📌 Welcome Message: '{welcome_text}'")
+                print("  ✅ PASS: Minimum valid password accepted")
+                assert True
             else:
-                print("  ⚠️ Welcome message not visible")
+                print("  ⚠️ Welcome message element found but not visible")
+                pytest.fail("Welcome message not visible")
         except:
-            print("  ⚠️ Login may have failed (could be a bug)")
+            print("  ❌ Login failed - welcome message not found")
+            pytest.fail("Login should have succeeded with 8-char password")
     
     
     # ==========================================
@@ -234,6 +489,7 @@ class TestBoundaryValues:
         Expected: Login successful, welcome message shown
         """
         print("\n🧪 TEST 6: Valid Email and Password")
+        print("  📝 Testing: Submitting valid credentials")
         
         email_field = driver.find_element(By.ID, 'email')
         password_field = driver.find_element(By.ID, 'password')
@@ -249,9 +505,16 @@ class TestBoundaryValues:
         # Check if welcome message appears
         try:
             welcome = driver.find_element(By.ID, 'welcomeMessage')
-            assert welcome.is_displayed(), "Welcome message should be shown"
-            print("  ✅ Valid login successful")
-        except:
+            welcome_text = welcome.text
+            print(f"  📌 Welcome Message: '{welcome_text}'")
+            
+            if welcome.is_displayed():
+                print("  ✅ PASS: Valid login successful")
+                assert True
+            else:
+                pytest.fail("Welcome message found but not visible")
+        except Exception as e:
+            print("  ❌ Login failed - welcome message not found")
             pytest.fail("❌ Valid login failed (should have succeeded)")
 
 
