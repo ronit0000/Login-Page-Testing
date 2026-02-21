@@ -1,53 +1,84 @@
 """
-Page Object Model for Login Page
+🎓 BEGINNER-FRIENDLY: Page Object Model for Login Page
+
+What is Page Object Model (POM)?
+- It's a design pattern that creates a Python class for each web page
+- The class contains all the elements (buttons, inputs) on that page
+- It makes tests easier to read and maintain
+
+Think of it like this:
+- Instead of writing driver.find_element(...) in every test
+- We write login_page.enter_email() - much simpler!
 """
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
 
 class LoginPage:
-    """Page Object for the Login Page"""
+    """
+    This class represents our Login Page
+    It knows how to find and interact with all elements on the page
+    """
     
-    # Locators
-    EMAIL_INPUT = (By.ID, 'email')
-    PASSWORD_INPUT = (By.ID, 'password')
-    REMEMBER_ME_CHECKBOX = (By.ID, 'rememberMe')
-    LOGIN_BUTTON = (By.CSS_SELECTOR, 'button[type="submit"]')
+    # ========================================
+    # STEP 1: Define where elements are located on the page
+    # ========================================
+    # By.ID means "find element by its ID attribute"
+    # By.CSS_SELECTOR means "find element using CSS selector"
     
-    EMAIL_ERROR = (By.ID, 'emailError')
-    PASSWORD_ERROR = (By.ID, 'passwordError')
+    EMAIL_INPUT = (By.ID, 'email')                    # The email input box
+    PASSWORD_INPUT = (By.ID, 'password')              # The password input box
+    REMEMBER_ME_CHECKBOX = (By.ID, 'rememberMe')      # Remember me checkbox
+    LOGIN_BUTTON = (By.CSS_SELECTOR, 'button[type="submit"]')  # The login button
     
-    WELCOME_MESSAGE = (By.ID, 'welcomeMessage')
-    USER_EMAIL_DISPLAY = (By.ID, 'userEmail')
+    EMAIL_ERROR = (By.ID, 'emailError')               # Error message for email
+    PASSWORD_ERROR = (By.ID, 'passwordError')         # Error message for password
     
-    FORGOT_PASSWORD_LINK = (By.CSS_SELECTOR, 'a.forgot-password')
-    SIGNUP_LINK = (By.CSS_SELECTOR, 'a.signup-link')
+    WELCOME_MESSAGE = (By.ID, 'welcomeMessage')       # Success message after login
     
-    LOGIN_FORM = (By.ID, 'loginForm')
-    
-    def __init__(self, driver, wait_time=10):
-        """Initialize the page object"""
+    def __init__(self, driver):
+        """
+        Initialize the page - this runs when we create a LoginPage object
+        driver = the browser that Selenium controls
+        wait = helps us wait for elements to load (instead of crashing)
+        """
         self.driver = driver
-        self.wait = WebDriverWait(driver, wait_time)
+        self.wait = WebDriverWait(driver, 10)  # Wait up to 10 seconds for elements
     
-    def load(self, url):
-        """Load the login page"""
+    # ========================================
+    # STEP 2: Define actions we can perform on the page
+    # ========================================
+    
+    def open_page(self, url):
+        """
+        Open the login page in the browser
+        Example: login_page.open_page("https://example.com")
+        """
         self.driver.get(url)
-        return self
+        return self  # Return self allows method chaining (explained below)
     
     def enter_email(self, email):
-        """Enter email into the email field"""
+        """
+        Type text into the email field
+        
+        How it works:
+        1. Wait until the email field appears on page (EC.presence_of_element_located)
+        2. Clear any existing text (clear())
+        3. Type the new email (send_keys())
+        """
         email_field = self.wait.until(
             EC.presence_of_element_located(self.EMAIL_INPUT)
         )
         email_field.clear()
         email_field.send_keys(email)
-        return self
+        return self  # Return self allows: login_page.enter_email().enter_password()
     
     def enter_password(self, password):
-        """Enter password into the password field"""
+        """
+        Type text into the password field
+        Same process as enter_email()
+        """
         password_field = self.wait.until(
             EC.presence_of_element_located(self.PASSWORD_INPUT)
         )
@@ -55,123 +86,118 @@ class LoginPage:
         password_field.send_keys(password)
         return self
     
-    def check_remember_me(self):
-        """Check the Remember Me checkbox"""
-        checkbox = self.driver.find_element(*self.REMEMBER_ME_CHECKBOX)
-        if not checkbox.is_selected():
-            checkbox.click()
-        return self
-    
-    def uncheck_remember_me(self):
-        """Uncheck the Remember Me checkbox"""
-        checkbox = self.driver.find_element(*self.REMEMBER_ME_CHECKBOX)
-        if checkbox.is_selected():
-            checkbox.click()
-        return self
-    
-    def click_login(self):
-        """Click the login button"""
-        login_btn = self.wait.until(
+    def click_login_button(self):
+        """
+        Click the login button
+        
+        EC.element_to_be_clickable waits until:
+        - Element is visible AND
+        - Element is enabled (not disabled)
+        Then it's safe to click!
+        """
+        login_button = self.wait.until(
             EC.element_to_be_clickable(self.LOGIN_BUTTON)
         )
-        login_btn.click()
+        login_button.click()
         return self
     
-    def submit_login(self, email, password, remember_me=False):
-        """Complete login flow"""
-        self.enter_email(email)
-        self.enter_password(password)
-        if remember_me:
-            self.check_remember_me()
-        self.click_login()
-        return self
-    
-    def get_email_error(self):
-        """Get email error message"""
+    def get_email_error_message(self):
+        """
+        Get the error message shown under the email field
+        Returns empty string "" if no error is shown
+        """
         try:
             error_element = self.driver.find_element(*self.EMAIL_ERROR)
             return error_element.text
         except:
-            return ""
+            return ""  # No error found
     
-    def get_password_error(self):
-        """Get password error message"""
+    def get_password_error_message(self):
+        """
+        Get the error message shown under the password field
+        Returns empty string "" if no error is shown
+        """
         try:
             error_element = self.driver.find_element(*self.PASSWORD_ERROR)
             return error_element.text
         except:
-            return ""
+            return ""  # No error found
     
-    def is_welcome_message_displayed(self, timeout=5):
-        """Check if welcome message is displayed"""
+    def is_welcome_message_shown(self):
+        """
+        Check if the welcome message appears after successful login
+        Returns True if message is visible, False otherwise
+        
+        This is useful to verify that login actually worked!
+        """
         try:
-            self.wait = WebDriverWait(self.driver, timeout)
-            welcome = self.wait.until(
+            # Wait up to 5 seconds for welcome message
+            wait = WebDriverWait(self.driver, 5)
+            welcome_element = wait.until(
                 EC.visibility_of_element_located(self.WELCOME_MESSAGE)
             )
-            return welcome.is_displayed()
-        except TimeoutException:
-            return False
-    
-    def get_welcome_message_email(self):
-        """Get the email displayed in welcome message"""
-        try:
-            email_display = self.driver.find_element(*self.USER_EMAIL_DISPLAY)
-            return email_display.text
+            return welcome_element.is_displayed()
         except:
-            return ""
+            return False  # Welcome message not found = login failed
     
-    def is_login_form_displayed(self):
-        """Check if login form is visible"""
-        try:
-            form = self.driver.find_element(*self.LOGIN_FORM)
-            return form.is_displayed()
-        except:
-            return False
+    # ========================================
+    # STEP 3: Helper methods for complete actions
+    # ========================================
     
-    def get_email_value(self):
-        """Get current value of email field"""
-        email_field = self.driver.find_element(*self.EMAIL_INPUT)
-        return email_field.get_attribute('value')
-    
-    def get_password_value(self):
-        """Get current value of password field"""
-        password_field = self.driver.find_element(*self.PASSWORD_INPUT)
-        return password_field.get_attribute('value')
-    
-    def is_remember_me_checked(self):
-        """Check if Remember Me checkbox is checked"""
-        checkbox = self.driver.find_element(*self.REMEMBER_ME_CHECKBOX)
-        return checkbox.is_selected()
-    
-    def click_forgot_password(self):
-        """Click Forgot Password link"""
-        link = self.driver.find_element(*self.FORGOT_PASSWORD_LINK)
-        link.click()
-        return self
-    
-    def click_signup(self):
-        """Click Sign Up link"""
-        link = self.driver.find_element(*self.SIGNUP_LINK)
-        link.click()
+    def do_login(self, email, password):
+        """
+        🎯 MAIN METHOD: Perform complete login action
+        
+        This is a shortcut that does all steps at once:
+        1. Enter email
+        2. Enter password
+        3. Click login button
+        
+        Example usage in tests:
+            login_page.do_login("test@example.com", "Password123")
+        """
+        self.enter_email(email)
+        self.enter_password(password)
+        self.click_login_button()
         return self
     
     def get_page_title(self):
-        """Get page title"""
+        """
+        Get the current page title
+        Example: "Login Page" or "Welcome"
+        """
         return self.driver.title
-    
-    def get_console_logs(self):
-        """Get browser console logs"""
-        try:
-            logs = self.driver.get_log('browser')
-            return logs
-        except:
-            return []
-    
-    def get_local_storage_item(self, key):
-        """Get item from localStorage"""
-        return self.driver.execute_script(f"return localStorage.getItem('{key}');")
-    
-    def execute_script(self, script):
-        """Execute JavaScript on the page"""
-        return self.driver.execute_script(script)
+
+
+# ========================================
+# 🎓 LEARNING NOTES FOR BEGINNERS:
+# ========================================
+# 
+# 1. Why use Page Object Model?
+#    - Makes tests easier to read: login_page.do_login() vs driver.find_element(By.ID, 'email').send_keys()
+#    - If the page changes, you only update the Page class, not every test!
+#    - Reusable: Write the method once, use it in multiple tests
+#
+# 2. What is "self"?
+#    - self refers to the current LoginPage object
+#    - self.driver = the browser instance
+#    - self.wait = the WebDriverWait instance
+#
+# 3. What is "return self"?
+#    - It lets you chain methods: login_page.enter_email("test@test.com").enter_password("pass").click_login_button()
+#    - This is called "method chaining"
+#
+# 4. What is WebDriverWait?
+#    - It waits for an element to appear before interacting with it
+#    - Prevents errors like "Element not found" when page is still loading
+#    - wait.until(EC.presence_of_element_located(...)) = "wait until element is present"
+#
+# 5. Common Selenium Methods:
+#    - driver.get(url) = Open a webpage
+#    - element.send_keys("text") = Type text into an input
+#    - element.click() = Click on button/link
+#    - element.text = Get the text content
+#    - element.is_displayed() = Check if element is visible
+#
+# 🎯 Next step: Look at the test files to see how we USE this LoginPage class!
+# ========================================

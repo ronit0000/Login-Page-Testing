@@ -1,103 +1,183 @@
 """
-Base test class with common setup and teardown
+🎓 BEGINNER-FRIENDLY: Base Test Setup
+
+WHAT IS THIS FILE?
+- This is the "parent" class that all tests inherit from
+- It handles the boring setup stuff (opening browser, closing browser)
+- Every test class inherits from BaseTest so they don't repeat code
+
+WHAT IS pytest?
+- pytest is a Python testing framework
+- It automatically finds functions that start with "test_"
+- It runs them and reports if they pass or fail
+
+WHAT IS A FIXTURE?
+- A fixture is setup code that runs before each test
+- @pytest.fixture(autouse=True) means "run this automatically"
+- Our setup() fixture opens the browser and login page
+- After test finishes, teardown closes the browser
 """
 import pytest
 import os
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.edge.service import Service as EdgeService
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from config import Config
 from pages.login_page import LoginPage
 
 
 class BaseTest:
-    """Base test class with common functionality"""
+    """
+    Base class for all tests
+    Handles browser setup and teardown
+    """
     
-    driver = None
-    login_page = None
+    # These variables will be available in all tests
+    driver = None          # The browser (Chrome)
+    login_page = None      # Our LoginPage object
     
     @pytest.fixture(autouse=True)
     def setup(self, request):
-        """Setup test - runs before each test"""
-        # Create screenshot directory if it doesn't exist
-        if Config.SCREENSHOT_ON_FAILURE and not os.path.exists(Config.SCREENSHOT_DIR):
-            os.makedirs(Config.SCREENSHOT_DIR)
+        """
+        ⚙️ SETUP: This runs BEFORE each test
         
-        # Initialize driver based on browser config
-        self.driver = self._get_driver()
-        self.driver.implicitly_wait(Config.IMPLICIT_WAIT)
+        Steps:
+        1. Create screenshots folder if it doesn't exist
+        2. Open Chrome browser
+        3. Maximize the window
+        4. Create LoginPage object
+        5. Open the login page
+        
+        After test finishes, the yield line passes control to teardown
+        """
+        print("\n🚀 Setting up test...")
+        
+        # Create directory for screenshots (if test fails)
+        if not os.path.exists("screenshots"):
+            os.makedirs("screenshots")
+        
+        # Open Chrome browser
+        self.driver = self._open_chrome_browser()
+        
+        # Maximize window so we can see everything
         self.driver.maximize_window()
         
-        # Initialize page object
-        self.login_page = LoginPage(self.driver, Config.EXPLICIT_WAIT)
+        # Create our LoginPage helper object
+        self.login_page = LoginPage(self.driver)
         
-        # Load the page
-        self.login_page.load(Config.BASE_URL)
+        # Open the login page URL
+        self.login_page.open_page(Config.BASE_URL)
         
+        print(f"✅ Browser opened: {Config.BASE_URL}")
+        
+        # yield means "pause here, run the test, then come back"
         yield
         
-        # Teardown - runs after each test
-        if request.node.rep_call.failed and Config.SCREENSHOT_ON_FAILURE:
-            self._take_screenshot(request.node.nodeid)
+        # ========================================
+        # 🧹 TEARDOWN: This runs AFTER each test
+        # ========================================
         
+        # Take screenshot if test failed
+        if request.node.rep_call.failed:
+            self._save_screenshot(request.node.nodeid)
+        
+        # Close the browser
         if self.driver:
             self.driver.quit()
+            print("🛑 Browser closed")
     
-    def _get_driver(self):
-        """Get WebDriver instance based on config"""
-        browser = Config.BROWSER
+    def _open_chrome_browser(self):
+        """
+        Open Chrome browser with Selenium
         
-        if browser == 'chrome':
-            options = webdriver.ChromeOptions()
-            if Config.HEADLESS:
-                options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            # Enable console logs
-            options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
-            
-            service = ChromeService(ChromeDriverManager().install())
-            return webdriver.Chrome(service=service, options=options)
+        What is ChromeDriverManager?
+        - It automatically downloads the correct ChromeDriver version
+        - You don't need to manually download anything!
+        - It's like magic 🪄
+        """
+        # Set Chrome options
+        options = webdriver.ChromeOptions()
         
-        elif browser == 'firefox':
-            options = webdriver.FirefoxOptions()
-            if Config.HEADLESS:
-                options.add_argument('--headless')
-            
-            service = FirefoxService(GeckoDriverManager().install())
-            return webdriver.Firefox(service=service, options=options)
+        # Uncomment next line to run tests without seeing the browser (faster!)
+        # options.add_argument('--headless')
         
-        elif browser == 'edge':
-            options = webdriver.EdgeOptions()
-            if Config.HEADLESS:
-                options.add_argument('--headless')
-            
-            service = EdgeService(EdgeChromiumDriverManager().install())
-            return webdriver.Edge(service=service, options=options)
+        # These options make Chrome more stable for testing
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
         
-        else:
-            raise ValueError(f"Unsupported browser: {browser}")
+        # Create Chrome service (this manages the ChromeDriver)
+        service = ChromeService(ChromeDriverManager().install())
+        
+        # Return the browser driver
+        return webdriver.Chrome(service=service, options=options)
     
-    def _take_screenshot(self, nodeid):
-        """Take screenshot on test failure"""
+    def _save_screenshot(self, test_name):
+        """
+        Take a screenshot when test fails
+        
+        Why is this useful?
+        - You can see exactly what went wrong!
+        - Screenshot shows the page state at moment of failure
+        """
+        # Create filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        # Clean up node ID for filename
-        filename = nodeid.replace('::', '_').replace('/', '_')
-        filepath = os.path.join(Config.SCREENSHOT_DIR, f"{filename}_{timestamp}.png")
+        filename = test_name.replace('::', '_').replace('/', '_')
+        filepath = os.path.join("screenshots", f"{filename}_{timestamp}.png")
+        
+        # Save screenshot
         self.driver.save_screenshot(filepath)
-        print(f"\nScreenshot saved: {filepath}")
+        print(f"📸 Screenshot saved: {filepath}")
     
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
     def pytest_runtest_makereport(self, item, call):
-        """Hook to get test result for screenshot on failure"""
+        """
+        pytest hook to detect test failures
+        (Don't worry too much about understanding this part!)
+        """
         outcome = yield
         rep = outcome.get_result()
         setattr(item, f"rep_{rep.when}", rep)
+
+
+# ========================================
+# 🎓 LEARNING NOTES - UNDERSTANDING THE FLOW:
+# ========================================
+#
+# When you run a test, here's what happens:
+#
+# 1. pytest finds all test files (test_*.py)
+# 2. pytest finds all test classes (Test*)
+# 3. For each test method:
+#    a. Run setup() - Open browser, create LoginPage
+#    b. Run test_something() - The actual test
+#    c. Run teardown - Close browser, maybe take screenshot
+#
+# Example flow for test_page_loads_successfully():
+#   - setup() opens Chrome and goes to login page
+#   - test_page_loads_successfully() checks the title
+#   - teardown closes Chrome
+#
+# Why use BaseTest?
+#   - Without it, every test file would need to:
+#     * Open browser
+#     * Close browser
+#     * Handle screenshots
+#   - With BaseTest, we write that code ONCE and reuse it!
+#
+# This is called "Don't Repeat Yourself" (DRY) principle
+#
+# ========================================
+# 🎯 KEY CONCEPTS YOU LEARNED:
+# ========================================
+# 1. What fixtures are (@pytest.fixture)
+# 2. What setup/teardown means
+# 3. How to open a browser with Selenium
+# 4. Why we take screenshots on failure
+# 5. How webdriver-manager automatically downloads ChromeDriver
+#
+# Next: Look at test_simple.py to see how tests use this BaseTest!
+# ========================================
 
 
 # pytest configuration
