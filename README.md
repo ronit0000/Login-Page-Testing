@@ -1,52 +1,14 @@
-# 🧪 Boundary Testing - Login Page
+# Login Page Testing
 
-Simple boundary testing project using **Selenium WebDriver** and **Python pytest**.
-
-## 🎯 What This Tests
-
-Tests boundary conditions for a login form at: https://ronit0000.github.io/Login-Page/
-
-**6 Test Scenarios:**
-1. ✅ Empty email field
-2. ✅ Invalid email format (test@)
-3. ✅ Empty password field
-4. ✅ Password too short (5 chars)
-5. ✅ Minimum valid password (8 chars)
-6. ✅ Valid email and password
-
-## 🚀 Quick Start
-
-### 1. Install Dependencies
+## Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Run Tests
-**Windows:**
+## Run Tests
 ```bash
-run_tests.bat
+pytest tests/test_boundary.py -v
 ```
-
-**Mac/Linux:**
-```bash
-pytest tests/test_boundary.py -v -s
-```
-
-## 📁 Project Structure
-
-```
-Login-page-testing/
-├── tests/
-│   ├── __init__.py
-│   └── test_boundary.py       # 6 boundary tests
-├── requirements.txt           # selenium, pytest, webdriver-manager
-├── run_tests.bat             # Easy test runner (Windows)
-└── README.md                 # This file
-```
-
-## 💻 Test Output
-
-Tests show **text output only** - no HTML reports!
 
 ```
 🧪 TEST 1: Empty Email
