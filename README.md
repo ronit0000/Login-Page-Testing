@@ -1,22 +1,18 @@
-# 🧪 Login Page Testing - Beginner Friendly
+# 🧪 Boundary Testing - Login Page
 
-A **simple and easy-to-understand** Selenium testing project for beginners learning test automation.
+Simple boundary testing project using **Selenium WebDriver** and **Python pytest**.
 
-## 📚 Start Here
+## 🎯 What This Tests
 
-**New to testing?** → Read [START_HERE.md](START_HERE.md)  
-**Want to learn Selenium?** → Read [BEGINNERS_GUIDE.md](BEGINNERS_GUIDE.md)
+Tests boundary conditions for a login form at: https://ronit0000.github.io/Login-Page/
 
-## 🎯 What This Project Tests
-
-This project tests a login page at: https://ronit0000.github.io/Login-Page/
-
-**Tests Include:**
-- ✅ Email validation (proper format checking)
-- ✅ Password validation (not empty)
-- ✅ UI elements (buttons, links, form fields)
-- ✅ Form submission behavior
-- ✅ Error messages display
+**6 Test Scenarios:**
+1. ✅ Empty email field
+2. ✅ Invalid email format (test@)
+3. ✅ Empty password field
+4. ✅ Password too short (5 chars)
+5. ✅ Minimum valid password (8 chars)
+6. ✅ Valid email and password
 
 ## 🚀 Quick Start
 
@@ -33,7 +29,7 @@ run_tests.bat
 
 **Mac/Linux:**
 ```bash
-pytest tests/test_simple.py -v
+pytest tests/test_boundary.py -v -s
 ```
 
 ## 📁 Project Structure
@@ -41,50 +37,59 @@ pytest tests/test_simple.py -v
 ```
 Login-page-testing/
 ├── tests/
-│   └── test_simple.py          # All tests (easy to read)
-├── pages/
-│   └── login_page.py           # Page Object Model
-├── config.py                   # Settings (URL, browser)
-├── requirements.txt            # Dependencies
-├── run_tests.bat               # Run tests easily
-├── START_HERE.md               # Complete setup guide
-└── BEGINNERS_GUIDE.md          # Learn Selenium step-by-step
+│   ├── __init__.py
+│   └── test_boundary.py       # 6 boundary tests
+├── requirements.txt           # selenium, pytest, webdriver-manager
+├── run_tests.bat             # Easy test runner (Windows)
+└── README.md                 # This file
 ```
 
-## 💡 What You'll Learn
+## 💻 Test Output
 
-- How Selenium automates browsers
-- Page Object Model (clean test structure)
-- Writing test cases with pytest
-- Finding elements (ID, CSS selectors)
-- Handling form inputs and buttons
-- Verifying expected results
+Tests show **text output only** - no HTML reports!
+
+```
+🧪 TEST 1: Empty Email
+  ✅ Error shown: Email is required
+
+🧪 TEST 2: Invalid Email Format
+  ✅ Invalid email correctly rejected
+
+...
+
+============== 6 passed in 45.23s ==============
+```
+
+## 📖 What You'll Learn
+
+- Selenium WebDriver basics
+- Finding elements (By.ID, By.CSS_SELECTOR)
+- Boundary testing concepts
+- pytest fixtures (setup/teardown)
+- Text-based test reporting
 
 ## 🛠️ Technologies
 
 - **Python 3.x** - Programming language
 - **Selenium** - Browser automation
 - **pytest** - Testing framework
-- **Chrome** - Default browser for tests
+- **webdriver-manager** - Auto-downloads ChromeDriver
+- **Chrome** - Browser for testing
 
-## 📖 Documentation
+## 🎓 For Beginners
 
-- [START_HERE.md](START_HERE.md) - Complete setup and first test run
-- [BEGINNERS_GUIDE.md](BEGINNERS_GUIDE.md) - Learn Selenium concepts
-- [config.py](config.py) - Configuration settings
+This is a minimal, easy-to-understand testing project:
+- ✅ Only 6 test cases
+- ✅ Direct Selenium WebDriver (no Page Object Model)
+- ✅ Text output only (no complex HTML reports)
+- ✅ Clear comments explaining everything
 
-## 🎓 Perfect For
-
-- Learning Selenium WebDriver
-- Understanding test automation basics
-- Hackathon projects
-- Portfolio projects
-- Practice writing tests
+Perfect for learning boundary testing basics!
 
 ## 📝 License
 
-Free to use for learning and projects!
+Free to use for learning!
 
 ---
 
-**Made for beginners** ❤️ **Easy to understand** ✨ **Well documented** 📚
+**Simple** ✨ **Easy to understand** 📚 **Boundary testing** 🎯
